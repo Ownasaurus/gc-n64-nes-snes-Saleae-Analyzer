@@ -2,6 +2,7 @@
 #define GCN64_SIMULATION_DATA_GENERATOR
 
 #include <SimulationChannelDescriptor.h>
+#include <AnalyzerHelpers.h>
 #include <string>
 class GCN64AnalyzerSettings;
 
@@ -17,13 +18,12 @@ public:
 protected:
 	GCN64AnalyzerSettings* mSettings;
 	U32 mSimulationSampleRateHz;
+	SimulationChannelDescriptor mSerialSimulationData;
 
 protected:
-	void CreateSerialByte();
-	std::string mSerialText;
-	U32 mStringIndex;
-
-	SimulationChannelDescriptor mSerialSimulationData;
+	void CreateN64Byte();
+	void CreateN64Zero(ClockGenerator cg);
+	void CreateN64One(ClockGenerator cg);
 
 };
 #endif //GCN64_SIMULATION_DATA_GENERATOR

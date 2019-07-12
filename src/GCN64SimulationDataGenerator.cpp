@@ -1,11 +1,7 @@
 #include "GCN64SimulationDataGenerator.h"
 #include "GCN64AnalyzerSettings.h"
 
-#include <AnalyzerHelpers.h>
-
 GCN64SimulationDataGenerator::GCN64SimulationDataGenerator()
-:	mSerialText( "My first analyzer, woo hoo!" ),
-	mStringIndex( 0 )
 {
 }
 
@@ -29,24 +25,21 @@ U32 GCN64SimulationDataGenerator::GenerateSimulationData( U64 largest_sample_req
 
 	while( mSerialSimulationData.GetCurrentSampleNumber() < adjusted_largest_sample_requested )
 	{
-		CreateSerialByte();
+		CreateN64Byte();
 	}
 
 	*simulation_channel = &mSerialSimulationData;
 	return 1;
 }
 
-void GCN64SimulationDataGenerator::CreateSerialByte()
+void GCN64SimulationDataGenerator::CreateN64Byte()
 {
-	U32 samples_per_bit = mSimulationSampleRateHz / mSettings->mBitRate;
+	// can modify this to generate sample data
 
-	U8 byte = mSerialText[ mStringIndex ];
-	mStringIndex++;
-	if( mStringIndex == mSerialText.size() )
-		mStringIndex = 0;
+	ClockGenerator cg;
+	cg.Init(1000000, mSimulationSampleRateHz); // target frequency of 1000000 should correspond to 1us per period
 
-	//we're currenty high
-	//let's move forward a little
+	/*
 	mSerialSimulationData.Advance( samples_per_bit * 10 );
 
 	mSerialSimulationData.Transition();  //low-going edge for start bit
@@ -68,4 +61,16 @@ void GCN64SimulationDataGenerator::CreateSerialByte()
 
 	//lets pad the end a bit for the stop bit:
 	mSerialSimulationData.Advance( samples_per_bit );
+
+	*/
+}
+
+void GCN64SimulationDataGenerator::CreateN64Zero(ClockGenerator cg)
+{
+
+}
+
+void GCN64SimulationDataGenerator::CreateN64One(ClockGenerator cg)
+{
+
 }

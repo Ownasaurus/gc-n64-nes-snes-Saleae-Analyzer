@@ -17,11 +17,9 @@ public:
 
 	
 	Channel mInputChannel;
-	U32 mBitRate;
 
 protected:
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mInputChannelInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceInteger >	mBitRateInterface;
 };
 
 #endif //GCN64_ANALYZER_SETTINGS

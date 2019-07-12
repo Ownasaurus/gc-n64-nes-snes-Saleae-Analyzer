@@ -26,11 +26,15 @@ void GCN64Analyzer::WorkerThread()
 {
 	mSampleRateHz = GetSampleRate();
 
-	mSerial = GetAnalyzerChannelData( mSettings->mInputChannel );
+	mGCN64Data = GetAnalyzerChannelData( mSettings->mInputChannel );
 
-	if( mSerial->GetBitState() == BIT_LOW )
-		mSerial->AdvanceToNextEdge();
+	// make sure we start on a rising edge
+	if( mGCN64Data->GetBitState() == BIT_LOW )
+		mGCN64Data->AdvanceToNextEdge();
+	
+	// TODO: do all of the anaylsis
 
+	/*
 	U32 samples_per_bit = mSampleRateHz / mSettings->mBitRate;
 	U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( mSettings->mBitRate ) );
 
@@ -53,7 +57,7 @@ void GCN64Analyzer::WorkerThread()
 			if( mSerial->GetBitState() == BIT_HIGH )
 				data |= mask;
 
-			mSerial->Advance( samples_per_bit );
+			//mSerial->Advance( samples_per_bit );
 
 			mask = mask >> 1;
 		}
@@ -70,6 +74,7 @@ void GCN64Analyzer::WorkerThread()
 		mResults->CommitResults();
 		ReportProgress( frame.mEndingSampleInclusive );
 	}
+	*/
 }
 
 bool GCN64Analyzer::NeedsRerun()
@@ -90,7 +95,7 @@ U32 GCN64Analyzer::GenerateSimulationData( U64 minimum_sample_index, U32 device_
 
 U32 GCN64Analyzer::GetMinimumSampleRateHz()
 {
-	return mSettings->mBitRate * 4;
+	return 1000000 * 4;
 }
 
 const char* GCN64Analyzer::GetAnalyzerName() const

@@ -24,7 +24,7 @@ public:
 protected: //vars
 	std::auto_ptr< GCN64AnalyzerSettings > mSettings;
 	std::auto_ptr< GCN64AnalyzerResults > mResults;
-	AnalyzerChannelData* mSerial;
+	AnalyzerChannelData* mGCN64Data;
 
 	GCN64SimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;
