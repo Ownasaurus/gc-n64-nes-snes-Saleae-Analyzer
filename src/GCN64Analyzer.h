@@ -6,6 +6,15 @@
 #include "GCN64SimulationDataGenerator.h"
 
 class GCN64AnalyzerSettings;
+enum GC_STATE
+{
+	GC_COMMAND_PREFIX=0,
+	GC_COMMAND_SUFFIX=1,
+	GC_RESPONSE_THREE=3,
+	GC_RESPONSE_FOUR=4,
+	GC_RESPONSE_EIGHT=8,
+	GC_RESPONSE_TEN=10
+};
 class ANALYZER_EXPORT GCN64Analyzer : public Analyzer2
 {
 public:
@@ -32,6 +41,7 @@ protected: //vars
 	bool mSimulationInitilized;
 
 	U32 mSampleRateHz;
+	GC_STATE mState;
 #pragma warning( pop )
 };
 

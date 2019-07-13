@@ -43,7 +43,11 @@ void GCN64Analyzer::WorkerThread()
 	U64 dbd;
 	DataBuilder db;
 
-	//TODO: HANDLE STOP BITS AND PAUSES ON THE LINE
+	U64 command[3];
+
+	mState = GC_COMMAND_PREFIX;
+	U8 numBytes = 0;
+
 	while (1)
 	{
 		db.Reset(&dbd, MsbFirst, 8);
@@ -56,10 +60,62 @@ void GCN64Analyzer::WorkerThread()
 		mGCN64Data->Advance(cg.AdvanceByTimeS(0.000002)); // advance by 2us
 		BitState bs = mGCN64Data->GetBitState();
 		db.AddBit(bs);
-		if(bs == BitState::BIT_HIGH)
-			mResults->AddMarker(mGCN64Data->GetSampleNumber(), AnalyzerResults::One, mSettings->mInputChannel);
+		if (bs == BitState::BIT_HIGH)
+		{
+			/*either this is:
+				an 0xFF packet
+				a stop bit
+				just byte data in the middle of a response
+			*/
+			// stop bit
+			if (mState == GC_COMMAND_SUFFIX)
+			{
+				// mark it as a stop and move on to analyzing the next bit
+				mResults->AddMarker(mGCN64Data->GetSampleNumber(), AnalyzerResults::Stop, mSettings->mInputChannel);
+				mGCN64Data->AdvanceToNextEdge();
+
+				// if recognized command with 
+				if (command[0] == 0x00 || command[0] == 0x01 || command[0] == 0xFF)
+				{
+					mState = GC_RESPONSE_THREE;
+					numBytes = 0;
+				}
+				else if (command[0] == 0x41)// || command[0] == 0x02 || command[0] == 0x03)
+				{
+					mState = GC_RESPONSE_TEN;
+					numBytes = 0;
+				}
+				else if (command[0] == 0x40 && numBytes == 3)
+				{
+					mState = GC_RESPONSE_EIGHT;
+					numBytes = 0;
+				}
+				continue;
+			}
+			else if (mState >= 3 && numBytes == mState)
+			{
+				// mark it as a stop, and we're done with the command
+				mResults->AddMarker(mGCN64Data->GetSampleNumber(), AnalyzerResults::Stop, mSettings->mInputChannel);
+				mGCN64Data->AdvanceToNextEdge();
+
+				// reset to initial state
+				mState = GC_COMMAND_PREFIX;
+				memset(&command, 0, sizeof(U64) * 3);
+				numBytes = 0;
+
+				continue;
+			}
+			// 0xFF packet or regular byte data
+			else
+			{
+				// mark it as a 1 and keep on going
+				mResults->AddMarker(mGCN64Data->GetSampleNumber(), AnalyzerResults::One, mSettings->mInputChannel);
+			}
+		}
 		else
+		{
 			mResults->AddMarker(mGCN64Data->GetSampleNumber(), AnalyzerResults::Zero, mSettings->mInputChannel);
+		}
 
 		U8 bits_read = 1;
 
@@ -67,13 +123,13 @@ void GCN64Analyzer::WorkerThread()
 		if (mGCN64Data->GetBitState() == BIT_LOW)
 			mGCN64Data->AdvanceToNextEdge();
 
+		// get to the falling edge
+		mGCN64Data->AdvanceToNextEdge();
+
 		while (1) // read at least 9 bits (1 byte + stop bit)
 		{
-			// get to the falling edge
-			mGCN64Data->AdvanceToNextEdge();
-
 			// get middle of first pulse, 2us later
-			U32 numToggles = mGCN64Data->Advance( cg.AdvanceByTimeS(0.000002) ); // advance by 2us
+			U32 numToggles = mGCN64Data->Advance(cg.AdvanceByTimeS(0.000002)); // advance by 2us
 			// numToggles should be either 0 or 1 for our protocol
 			bs = mGCN64Data->GetBitState();
 			db.AddBit(bs);
@@ -84,16 +140,14 @@ void GCN64Analyzer::WorkerThread()
 
 			bits_read++;
 
-			if (bits_read == 8)
-			{
-				// finish the frame properly
+			// finish the bit properly
+			mGCN64Data->AdvanceToNextEdge();
+
+			if (mGCN64Data->GetBitState() == BIT_HIGH)
 				mGCN64Data->AdvanceToNextEdge();
 
-				if (mGCN64Data->GetBitState() == BIT_HIGH)
-					mGCN64Data->AdvanceToNextEdge();
-
-				bits_read = 0;
-
+			if (bits_read == 8)
+			{
 				break;
 			}
 		}
@@ -107,6 +161,18 @@ void GCN64Analyzer::WorkerThread()
 		mResults->AddFrame(frame);
 		mResults->CommitResults();
 		ReportProgress(frame.mEndingSampleInclusive);
+
+		if (mState == GC_COMMAND_PREFIX)
+		{
+			command[0] = dbd;
+			mState = GC_COMMAND_SUFFIX;
+		}
+		else if (mState == GC_COMMAND_SUFFIX)
+		{
+			command[numBytes] = dbd;
+		}
+
+		numBytes++;
 	}
 }
 
