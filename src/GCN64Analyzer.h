@@ -21,6 +21,8 @@ public:
 	virtual const char* GetAnalyzerName() const;
 	virtual bool NeedsRerun();
 
+#pragma warning( push )
+#pragma warning( disable : 4251 )
 protected: //vars
 	std::auto_ptr< GCN64AnalyzerSettings > mSettings;
 	std::auto_ptr< GCN64AnalyzerResults > mResults;
@@ -29,10 +31,8 @@ protected: //vars
 	GCN64SimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;
 
-	//Serial analysis vars:
 	U32 mSampleRateHz;
-	U32 mStartOfStopBitOffset;
-	U32 mEndOfStopBitOffset;
+#pragma warning( pop )
 };
 
 extern "C" ANALYZER_EXPORT const char* __cdecl GetAnalyzerName();
