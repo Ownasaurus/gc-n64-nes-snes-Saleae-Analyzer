@@ -32,109 +32,76 @@ void GCN64Analyzer::WorkerThread()
 	if( mGCN64Data->GetBitState() == BIT_LOW )
 		mGCN64Data->AdvanceToNextEdge();
 	
-	// get to the first falling edge
-	mGCN64Data->AdvanceToNextEdge();
-
-	U64 starting_sample = mGCN64Data->GetSampleNumber();
-
-	// get middle of first pulse, 2us later
-	// TODO: USE CLOCK GENERATOR TO DO THIS?
-
-	U32 command = mGCN64Data->GetBitState();
-	U8 bits_read = 1;
-	U8 currentBit = 0;
-
-	while (1) // read at least 9 bits (1 byte + stop bit)
+	while (1)
 	{
-		command = command << 1; // make room for the new bit
-
-		// make sure we start at a rising edge
-		if (mGCN64Data->GetBitState() == BIT_LOW)
-			mGCN64Data->AdvanceToNextEdge();
-
-		// get to the falling edge
+		// get to the first falling edge
 		mGCN64Data->AdvanceToNextEdge();
+
+		U64 starting_sample = mGCN64Data->GetSampleNumber();
 
 		// get middle of first pulse, 2us later
 		// TODO: USE CLOCK GENERATOR TO DO THIS?
+		// TODO: another solution to consider: USE AdvanceToNextEdge() twice and see whether it was longer low or high rather
 
-		currentBit = mGCN64Data->GetBitState();
+		// TODO: replace "command" with BitBuilder class
+		// TODO: use BitExtractor class to read bytes
 
-		if (currentBit == 5) // timeout TODO: replace this with actual determination if we're at the end of the data
+		// here are nice markers we can add to the timeline: enum MarkerType { Dot, ErrorDot, Square, ErrorSquare, UpArrow, DownArrow, X, ErrorX, Start, Stop, One, Zero
+
+		U32 command = mGCN64Data->GetBitState();
+		U8 bits_read = 1;
+		U8 currentBit = 0;
+
+		while (1) // read at least 9 bits (1 byte + stop bit)
 		{
-			if (bits_read >= 8)
+			command = command << 1; // make room for the new bit
+
+			// make sure we start at a rising edge
+			if (mGCN64Data->GetBitState() == BIT_LOW)
+				mGCN64Data->AdvanceToNextEdge();
+
+			// get to the falling edge
+			mGCN64Data->AdvanceToNextEdge();
+
+			// get middle of first pulse, 2us later
+			// TODO: USE CLOCK GENERATOR TO DO THIS?
+
+			currentBit = mGCN64Data->GetBitState();
+
+			if (currentBit == 5) // timeout TODO: replace this with actual determination if we're at the end of the data
 			{
-				command = command >> 2; // get rid of the stop bit AND the room we made for an additional bit
+				if (bits_read >= 8)
+				{
+					command = command >> 2; // get rid of the stop bit AND the room we made for an additional bit
+					break;
+				}
+				else // there is no possible way this can be a real command
+				{
+					command = 5; // dummy value
+					break;
+				}
+			}
+			command += currentBit;
+
+			bits_read++;
+
+			if (bits_read >= 25) // this is the longest known command length
+			{
+				command = command >> 1; // get rid of the stop bit (which is always a 1)
 				break;
 			}
-			else // there is no possible way this can be a real command
-			{
-				command = 5; // dummy value
-				break;
-			}
+
+			Frame frame;
+			frame.mData1 = command;
+			frame.mFlags = 0;
+			frame.mStartingSampleInclusive = starting_sample;
+			frame.mEndingSampleInclusive = mGCN64Data->GetSampleNumber();
+
+			mResults->AddFrame(frame);
+			mResults->CommitResults();
+			ReportProgress(frame.mEndingSampleInclusive);
 		}
-		command += currentBit;
-
-		bits_read++;
-
-		if (bits_read >= 25) // this is the longest known command length
-		{
-			command = command >> 1; // get rid of the stop bit (which is always a 1)
-			break;
-		}
-
-		Frame frame;
-		frame.mData1 = command;
-		frame.mFlags = 0;
-		frame.mStartingSampleInclusive = starting_sample;
-		frame.mEndingSampleInclusive = mGCN64Data->GetSampleNumber();
-
-		mResults->AddFrame(frame);
-		mResults->CommitResults();
-		ReportProgress(frame.mEndingSampleInclusive);
 	}
-
-	/*
-	U32 samples_per_bit = mSampleRateHz / mSettings->mBitRate;
-	U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( mSettings->mBitRate ) );
-
-	for( ; ; )
-	{
-		U8 data = 0;
-		U8 mask = 1 << 7;
-		
-		mSerial->AdvanceToNextEdge(); //falling edge -- beginning of the start bit
-
-		U64 starting_sample = mSerial->GetSampleNumber();
-
-		mSerial->Advance( samples_to_first_center_of_first_data_bit );
-
-		for( U32 i=0; i<8; i++ )
-		{
-			//let's put a dot exactly where we sample this bit:
-			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
-
-			if( mSerial->GetBitState() == BIT_HIGH )
-				data |= mask;
-
-			//mSerial->Advance( samples_per_bit );
-
-			mask = mask >> 1;
-		}
-
-
-		//we have a byte to save. 
-		Frame frame;
-		frame.mData1 = data;
-		frame.mFlags = 0;
-		frame.mStartingSampleInclusive = starting_sample;
-		frame.mEndingSampleInclusive = mSerial->GetSampleNumber();
-
-		mResults->AddFrame( frame );
-		mResults->CommitResults();
-		ReportProgress( frame.mEndingSampleInclusive );
-	}
-	*/
 }
 
 bool GCN64Analyzer::NeedsRerun()
