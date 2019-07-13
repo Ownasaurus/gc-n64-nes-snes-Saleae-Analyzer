@@ -34,17 +34,20 @@ void GCN64Analyzer::WorkerThread()
 	if( mGCN64Data->GetBitState() == BIT_LOW )
 		mGCN64Data->AdvanceToNextEdge();
 
+	// get to the first falling edge
+	mGCN64Data->AdvanceToNextEdge();
+
 	ClockGenerator cg;
 	cg.Init(250000, mSampleRateHz);
 
 	U64 dbd;
 	DataBuilder db;
-	db.Reset(&dbd, MsbFirst, 24);
-	
+
+	//TODO: HANDLE STOP BITS AND PAUSES ON THE LINE
 	while (1)
 	{
-		// get to the first falling edge
-		mGCN64Data->AdvanceToNextEdge();
+		db.Reset(&dbd, MsbFirst, 8);
+		dbd = 0;
 
 		// this is the beginning of the first bit
 		U64 starting_sample = mGCN64Data->GetSampleNumber();
@@ -60,12 +63,12 @@ void GCN64Analyzer::WorkerThread()
 
 		U8 bits_read = 1;
 
+		// make sure we start at a rising edge
+		if (mGCN64Data->GetBitState() == BIT_LOW)
+			mGCN64Data->AdvanceToNextEdge();
+
 		while (1) // read at least 9 bits (1 byte + stop bit)
 		{
-			// make sure we start at a rising edge
-			if (mGCN64Data->GetBitState() == BIT_LOW)
-				mGCN64Data->AdvanceToNextEdge();
-
 			// get to the falling edge
 			mGCN64Data->AdvanceToNextEdge();
 
@@ -74,7 +77,7 @@ void GCN64Analyzer::WorkerThread()
 			// numToggles should be either 0 or 1 for our protocol
 			bs = mGCN64Data->GetBitState();
 			db.AddBit(bs);
-			if (bs == BitState::BIT_HIGH)
+			if (bs == BIT_HIGH)
 				mResults->AddMarker(mGCN64Data->GetSampleNumber(), AnalyzerResults::One, mSettings->mInputChannel);
 			else
 				mResults->AddMarker(mGCN64Data->GetSampleNumber(), AnalyzerResults::Zero, mSettings->mInputChannel);
@@ -82,7 +85,17 @@ void GCN64Analyzer::WorkerThread()
 			bits_read++;
 
 			if (bits_read == 8)
+			{
+				// finish the frame properly
+				mGCN64Data->AdvanceToNextEdge();
+
+				if (mGCN64Data->GetBitState() == BIT_HIGH)
+					mGCN64Data->AdvanceToNextEdge();
+
+				bits_read = 0;
+
 				break;
+			}
 		}
 
 		Frame frame;
@@ -94,9 +107,6 @@ void GCN64Analyzer::WorkerThread()
 		mResults->AddFrame(frame);
 		mResults->CommitResults();
 		ReportProgress(frame.mEndingSampleInclusive);
-
-		// reset the databuilder
-		db.Reset(&dbd, MsbFirst, 24);
 	}
 }
 
