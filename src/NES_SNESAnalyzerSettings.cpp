@@ -22,6 +22,7 @@ NES_SNESAnalyzerSettings::NES_SNESAnalyzerSettings()
 
 	mD1ChannelInterface.reset(new AnalyzerSettingInterfaceChannel());
 	mD1ChannelInterface->SetTitleAndTooltip("D1", "Standard NES and SNES Analyzer");
+	mD1ChannelInterface->SetSelectionOfNoneIsAllowed(true);
 	mD1ChannelInterface->SetChannel(mD1Channel);
 
 
@@ -48,12 +49,15 @@ NES_SNESAnalyzerSettings::~NES_SNESAnalyzerSettings()
 bool NES_SNESAnalyzerSettings::SetSettingsFromInterfaces()
 {
 	mLatchChannel = mLatchChannelInterface->GetChannel();
+	mClockChannel = mClockChannelInterface->GetChannel();
+	mD0Channel = mD0ChannelInterface->GetChannel();
+	mD1Channel = mD1ChannelInterface->GetChannel();
 
 	ClearChannels();
-	AddChannel( mLatchChannel, "NES and SNES Analyzer", true );
-	AddChannel(mClockChannel, "NES and SNES Analyzer", true);
-	AddChannel(mD0Channel, "NES and SNES Analyzer", true);
-	AddChannel(mD1Channel, "NES and SNES Analyzer", true);
+	AddChannel( mLatchChannel, "Latch", true );
+	AddChannel(mClockChannel, "Clock", true);
+	AddChannel(mD0Channel, "D0", true);
+	AddChannel(mD1Channel, "D1", true);
 
 	return true;
 }
@@ -61,9 +65,9 @@ bool NES_SNESAnalyzerSettings::SetSettingsFromInterfaces()
 void NES_SNESAnalyzerSettings::UpdateInterfacesFromSettings()
 {
 	mLatchChannelInterface->SetChannel( mLatchChannel );
-	mLatchChannelInterface->SetChannel(mClockChannel);
-	mLatchChannelInterface->SetChannel(mD0Channel);
-	mLatchChannelInterface->SetChannel(mD1Channel);
+	mClockChannelInterface->SetChannel(mClockChannel);
+	mD0ChannelInterface->SetChannel(mD0Channel);
+	mD1ChannelInterface->SetChannel(mD1Channel);
 }
 
 void NES_SNESAnalyzerSettings::LoadSettings( const char* settings )
@@ -74,10 +78,10 @@ void NES_SNESAnalyzerSettings::LoadSettings( const char* settings )
 	text_archive >> mLatchChannel;
 
 	ClearChannels();
-	AddChannel( mLatchChannel, "NES and SNES Analyzer", true );
-	AddChannel(mClockChannel, "NES and SNES Analyzer", true);
-	AddChannel(mD0Channel, "NES and SNES Analyzer", true);
-	AddChannel(mD1Channel, "NES and SNES Analyzer", true);
+	AddChannel( mLatchChannel, "Latch", true );
+	AddChannel(mClockChannel, "Clock", true);
+	AddChannel(mD0Channel, "D0", true);
+	AddChannel(mD1Channel, "D1", true);
 
 	UpdateInterfacesFromSettings();
 }

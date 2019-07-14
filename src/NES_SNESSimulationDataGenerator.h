@@ -2,6 +2,7 @@
 #define NES_SNES_SIMULATION_DATA_GENERATOR
 
 #include <SimulationChannelDescriptor.h>
+#include <AnalyzerHelpers.h>
 #include <string>
 class NES_SNESAnalyzerSettings;
 

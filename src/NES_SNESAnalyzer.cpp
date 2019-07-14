@@ -2,6 +2,8 @@
 #include "NES_SNESAnalyzerSettings.h"
 #include <AnalyzerChannelData.h>
 
+using namespace AnalyzerEnums;
+
 NES_SNESAnalyzer::NES_SNESAnalyzer()
 :	Analyzer2(),  
 	mSettings( new NES_SNESAnalyzerSettings() ),
@@ -24,52 +26,55 @@ void NES_SNESAnalyzer::SetupResults()
 
 void NES_SNESAnalyzer::WorkerThread()
 {
-	mSampleRateHz = GetSampleRate();
+	mLatch = GetAnalyzerChannelData( mSettings->mLatchChannel );
+	mClock = GetAnalyzerChannelData(mSettings->mClockChannel);
+	mD0 = GetAnalyzerChannelData(mSettings->mD0Channel);
+	mD1 = GetAnalyzerChannelData(mSettings->mD1Channel);
 
-	mSerial = GetAnalyzerChannelData( mSettings->mLatchChannel );
+	U64 dbd = 0;
+	DataBuilder db;
+	
 
-	if( mSerial->GetBitState() == BIT_LOW )
-		mSerial->AdvanceToNextEdge();
+	// make sure we are low
+	if( mLatch->GetBitState() == BIT_HIGH )
+		mLatch->AdvanceToNextEdge();
 
-	U32 samples_per_bit = mSampleRateHz / 115200;
-	U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( 115200 ) );
+	// start at first rising edge
+	mLatch->AdvanceToNextEdge();
 
-	for( ; ; )
+	while(1)
 	{
-		U8 data = 0;
-		U8 mask = 1 << 7;
+		// prepare data container
+		dbd = 0;
+		db.Reset(&dbd, MsbFirst, 32); // support up to 32 bit polling in case of overread
+
+		U64 frame_start = mLatch->GetSampleNumber();
+
+		// advance all lines up to the rising edge of the latch; the beginning of the frame
+		mClock->AdvanceToAbsPosition(frame_start);
+		mD0->AdvanceToAbsPosition(frame_start);
+		mD1->AdvanceToAbsPosition(frame_start);
 		
-		mSerial->AdvanceToNextEdge(); //falling edge -- beginning of the start bit
+		// process each clock in some sort of loop
 
-		U64 starting_sample = mSerial->GetSampleNumber();
+		//advance to next latch
+		if (mLatch->GetBitState() == BIT_HIGH)
+			mLatch->AdvanceToNextEdge();
 
-		mSerial->Advance( samples_to_first_center_of_first_data_bit );
+		mLatch->AdvanceToNextEdge();
 
-		for( U32 i=0; i<8; i++ )
-		{
-			//let's put a dot exactly where we sample this bit:
-			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mLatchChannel );
-
-			if( mSerial->GetBitState() == BIT_HIGH )
-				data |= mask;
-
-			mSerial->Advance( samples_per_bit );
-
-			mask = mask >> 1;
-		}
-
-
-		//we have a byte to save. 
+		//we have a frame of data to save. 
 		Frame frame;
-		frame.mData1 = data;
+		frame.mData1 = dbd;
 		frame.mFlags = 0;
-		frame.mStartingSampleInclusive = starting_sample;
-		frame.mEndingSampleInclusive = mSerial->GetSampleNumber();
+		frame.mStartingSampleInclusive = frame_start;
+		frame.mEndingSampleInclusive = mLatch->GetSampleNumber();
 
-		mResults->AddFrame( frame );
+		mResults->AddFrame(frame);
 		mResults->CommitResults();
-		ReportProgress( frame.mEndingSampleInclusive );
+		ReportProgress(frame.mEndingSampleInclusive);
 	}
+
 }
 
 bool NES_SNESAnalyzer::NeedsRerun()

@@ -26,15 +26,14 @@ public:
 protected: //vars
 	std::auto_ptr< NES_SNESAnalyzerSettings > mSettings;
 	std::auto_ptr< NES_SNESAnalyzerResults > mResults;
-	AnalyzerChannelData* mSerial;
+	AnalyzerChannelData* mLatch;
+	AnalyzerChannelData* mClock;
+	AnalyzerChannelData* mD0;
+	AnalyzerChannelData* mD1;
 
 	NES_SNESSimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;
 
-	//Serial analysis vars:
-	U32 mSampleRateHz;
-	U32 mStartOfStopBitOffset;
-	U32 mEndOfStopBitOffset;
 #pragma warning( pop )
 };
 
