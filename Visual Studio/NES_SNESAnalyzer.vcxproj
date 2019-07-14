@@ -27,23 +27,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\GCN64Analyzer.cpp" />
-    <ClCompile Include="..\src\GCN64AnalyzerResults.cpp" />
-    <ClCompile Include="..\src\GCN64AnalyzerSettings.cpp" />
-    <ClCompile Include="..\src\GCN64SimulationDataGenerator.cpp" />
+    <ClCompile Include="..\src\NES_SNESAnalyzer.cpp" />
+    <ClCompile Include="..\src\NES_SNESAnalyzerResults.cpp" />
+    <ClCompile Include="..\src\NES_SNESAnalyzerSettings.cpp" />
+    <ClCompile Include="..\src\NES_SNESSimulationDataGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\GCN64Analyzer.h" />
-    <ClInclude Include="..\src\GCN64AnalyzerResults.h" />
-    <ClInclude Include="..\src\GCN64AnalyzerSettings.h" />
-    <ClInclude Include="..\src\GCN64SimulationDataGenerator.h" />
+    <ClInclude Include="..\src\NES_SNESAnalyzer.h" />
+    <ClInclude Include="..\src\NES_SNESAnalyzerResults.h" />
+    <ClInclude Include="..\src\NES_SNESAnalyzerSettings.h" />
+    <ClInclude Include="..\src\NES_SNESSimulationDataGenerator.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D7556E7E-A6BF-4BCE-BDC8-E66D2874C301}</ProjectGuid>
     <RootNamespace>SimpleSerialAnalyzer</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>GCN64Analyzer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -126,7 +125,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)64</TargetName>
+    <OutDir>$(SolutionDir)$(Platform)\NES_SNES\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\NES_SNES\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

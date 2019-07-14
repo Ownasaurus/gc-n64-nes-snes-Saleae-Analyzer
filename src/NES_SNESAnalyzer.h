@@ -21,6 +21,8 @@ public:
 	virtual const char* GetAnalyzerName() const;
 	virtual bool NeedsRerun();
 
+#pragma warning( push )
+#pragma warning( disable : 4251 )
 protected: //vars
 	std::auto_ptr< NES_SNESAnalyzerSettings > mSettings;
 	std::auto_ptr< NES_SNESAnalyzerResults > mResults;
@@ -33,6 +35,7 @@ protected: //vars
 	U32 mSampleRateHz;
 	U32 mStartOfStopBitOffset;
 	U32 mEndOfStopBitOffset;
+#pragma warning( pop )
 };
 
 extern "C" ANALYZER_EXPORT const char* __cdecl GetAnalyzerName();
