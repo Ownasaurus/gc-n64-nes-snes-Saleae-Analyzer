@@ -3,28 +3,42 @@
 
 
 NES_SNESAnalyzerSettings::NES_SNESAnalyzerSettings()
-:	mInputChannel( UNDEFINED_CHANNEL ),
-	mBitRate( 9600 )
+:	mLatchChannel( UNDEFINED_CHANNEL ),
+	mClockChannel(UNDEFINED_CHANNEL),
+	mD0Channel(UNDEFINED_CHANNEL),
+	mD1Channel(UNDEFINED_CHANNEL)
 {
-	mInputChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-	mInputChannelInterface->SetTitleAndTooltip( "Serial", "Standard NES and SNES Analyzer" );
-	mInputChannelInterface->SetChannel( mInputChannel );
+	mLatchChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
+	mLatchChannelInterface->SetTitleAndTooltip( "Latch", "Standard NES and SNES Analyzer" );
+	mLatchChannelInterface->SetChannel( mLatchChannel );
 
-	mBitRateInterface.reset( new AnalyzerSettingInterfaceInteger() );
-	mBitRateInterface->SetTitleAndTooltip( "Bit Rate (Bits/S)",  "Specify the bit rate in bits per second." );
-	mBitRateInterface->SetMax( 6000000 );
-	mBitRateInterface->SetMin( 1 );
-	mBitRateInterface->SetInteger( mBitRate );
+	mClockChannelInterface.reset(new AnalyzerSettingInterfaceChannel());
+	mClockChannelInterface->SetTitleAndTooltip("Clock", "Standard NES and SNES Analyzer");
+	mClockChannelInterface->SetChannel(mClockChannel);
 
-	AddInterface( mInputChannelInterface.get() );
-	AddInterface( mBitRateInterface.get() );
+	mD0ChannelInterface.reset(new AnalyzerSettingInterfaceChannel());
+	mD0ChannelInterface->SetTitleAndTooltip("D0", "Standard NES and SNES Analyzer");
+	mD0ChannelInterface->SetChannel(mD0Channel);
+
+	mD1ChannelInterface.reset(new AnalyzerSettingInterfaceChannel());
+	mD1ChannelInterface->SetTitleAndTooltip("D1", "Standard NES and SNES Analyzer");
+	mD1ChannelInterface->SetChannel(mD1Channel);
+
+
+	AddInterface( mLatchChannelInterface.get() );
+	AddInterface(mClockChannelInterface.get());
+	AddInterface(mD0ChannelInterface.get());
+	AddInterface(mD1ChannelInterface.get());
 
 	AddExportOption( 0, "Export as text/csv file" );
 	AddExportExtension( 0, "text", "txt" );
 	AddExportExtension( 0, "csv", "csv" );
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Serial", false );
+	AddChannel( mLatchChannel, "Latch", false );
+	AddChannel(mClockChannel, "Clock", false);
+	AddChannel(mD0Channel, "D0", false);
+	AddChannel(mD1Channel, "D1", false);
 }
 
 NES_SNESAnalyzerSettings::~NES_SNESAnalyzerSettings()
@@ -33,19 +47,23 @@ NES_SNESAnalyzerSettings::~NES_SNESAnalyzerSettings()
 
 bool NES_SNESAnalyzerSettings::SetSettingsFromInterfaces()
 {
-	mInputChannel = mInputChannelInterface->GetChannel();
-	mBitRate = mBitRateInterface->GetInteger();
+	mLatchChannel = mLatchChannelInterface->GetChannel();
 
 	ClearChannels();
-	AddChannel( mInputChannel, "NES and SNES Analyzer", true );
+	AddChannel( mLatchChannel, "NES and SNES Analyzer", true );
+	AddChannel(mClockChannel, "NES and SNES Analyzer", true);
+	AddChannel(mD0Channel, "NES and SNES Analyzer", true);
+	AddChannel(mD1Channel, "NES and SNES Analyzer", true);
 
 	return true;
 }
 
 void NES_SNESAnalyzerSettings::UpdateInterfacesFromSettings()
 {
-	mInputChannelInterface->SetChannel( mInputChannel );
-	mBitRateInterface->SetInteger( mBitRate );
+	mLatchChannelInterface->SetChannel( mLatchChannel );
+	mLatchChannelInterface->SetChannel(mClockChannel);
+	mLatchChannelInterface->SetChannel(mD0Channel);
+	mLatchChannelInterface->SetChannel(mD1Channel);
 }
 
 void NES_SNESAnalyzerSettings::LoadSettings( const char* settings )
@@ -53,11 +71,13 @@ void NES_SNESAnalyzerSettings::LoadSettings( const char* settings )
 	SimpleArchive text_archive;
 	text_archive.SetString( settings );
 
-	text_archive >> mInputChannel;
-	text_archive >> mBitRate;
+	text_archive >> mLatchChannel;
 
 	ClearChannels();
-	AddChannel( mInputChannel, "NES and SNES Analyzer", true );
+	AddChannel( mLatchChannel, "NES and SNES Analyzer", true );
+	AddChannel(mClockChannel, "NES and SNES Analyzer", true);
+	AddChannel(mD0Channel, "NES and SNES Analyzer", true);
+	AddChannel(mD1Channel, "NES and SNES Analyzer", true);
 
 	UpdateInterfacesFromSettings();
 }
@@ -66,8 +86,7 @@ const char* NES_SNESAnalyzerSettings::SaveSettings()
 {
 	SimpleArchive text_archive;
 
-	text_archive << mInputChannel;
-	text_archive << mBitRate;
+	text_archive << mLatchChannel;
 
 	return SetReturnString( text_archive.GetString() );
 }

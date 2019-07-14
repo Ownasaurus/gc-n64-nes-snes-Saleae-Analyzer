@@ -16,12 +16,16 @@ public:
 	virtual const char* SaveSettings();
 
 	
-	Channel mInputChannel;
-	U32 mBitRate;
+	Channel mLatchChannel;
+	Channel mClockChannel;
+	Channel mD0Channel;
+	Channel mD1Channel;
 
 protected:
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mInputChannelInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceInteger >	mBitRateInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mLatchChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mClockChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mD0ChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mD1ChannelInterface;
 };
 
 #endif //NES_SNES_ANALYZER_SETTINGS

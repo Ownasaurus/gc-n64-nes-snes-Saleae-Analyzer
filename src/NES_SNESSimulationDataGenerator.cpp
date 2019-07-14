@@ -18,7 +18,7 @@ void NES_SNESSimulationDataGenerator::Initialize( U32 simulation_sample_rate, NE
 	mSimulationSampleRateHz = simulation_sample_rate;
 	mSettings = settings;
 
-	mSerialSimulationData.SetChannel( mSettings->mInputChannel );
+	mSerialSimulationData.SetChannel( mSettings->mLatchChannel );
 	mSerialSimulationData.SetSampleRate( simulation_sample_rate );
 	mSerialSimulationData.SetInitialBitState( BIT_HIGH );
 }
@@ -38,7 +38,7 @@ U32 NES_SNESSimulationDataGenerator::GenerateSimulationData( U64 largest_sample_
 
 void NES_SNESSimulationDataGenerator::CreateSerialByte()
 {
-	U32 samples_per_bit = mSimulationSampleRateHz / mSettings->mBitRate;
+	U32 samples_per_bit = mSimulationSampleRateHz / 115200;
 
 	U8 byte = mSerialText[ mStringIndex ];
 	mStringIndex++;

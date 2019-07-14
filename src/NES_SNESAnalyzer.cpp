@@ -19,20 +19,20 @@ void NES_SNESAnalyzer::SetupResults()
 {
 	mResults.reset( new NES_SNESAnalyzerResults( this, mSettings.get() ) );
 	SetAnalyzerResults( mResults.get() );
-	mResults->AddChannelBubblesWillAppearOn( mSettings->mInputChannel );
+	mResults->AddChannelBubblesWillAppearOn( mSettings->mLatchChannel );
 }
 
 void NES_SNESAnalyzer::WorkerThread()
 {
 	mSampleRateHz = GetSampleRate();
 
-	mSerial = GetAnalyzerChannelData( mSettings->mInputChannel );
+	mSerial = GetAnalyzerChannelData( mSettings->mLatchChannel );
 
 	if( mSerial->GetBitState() == BIT_LOW )
 		mSerial->AdvanceToNextEdge();
 
-	U32 samples_per_bit = mSampleRateHz / mSettings->mBitRate;
-	U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( mSettings->mBitRate ) );
+	U32 samples_per_bit = mSampleRateHz / 115200;
+	U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( 115200 ) );
 
 	for( ; ; )
 	{
@@ -48,7 +48,7 @@ void NES_SNESAnalyzer::WorkerThread()
 		for( U32 i=0; i<8; i++ )
 		{
 			//let's put a dot exactly where we sample this bit:
-			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
+			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mLatchChannel );
 
 			if( mSerial->GetBitState() == BIT_HIGH )
 				data |= mask;
@@ -90,7 +90,7 @@ U32 NES_SNESAnalyzer::GenerateSimulationData( U64 minimum_sample_index, U32 devi
 
 U32 NES_SNESAnalyzer::GetMinimumSampleRateHz()
 {
-	return mSettings->mBitRate * 4;
+	return 115200 * 4;
 }
 
 const char* NES_SNESAnalyzer::GetAnalyzerName() const
