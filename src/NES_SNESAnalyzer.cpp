@@ -48,27 +48,58 @@ void NES_SNESAnalyzer::WorkerThread()
 		dbd = 0;
 		db.Reset(&dbd, MsbFirst, 32); // support up to 32 bit polling in case of overread
 
+		// frame the frame
 		U64 frame_start = mLatch->GetSampleNumber();
+		if (mLatch->GetBitState() == BIT_HIGH)
+			mLatch->AdvanceToNextEdge();
+		mLatch->AdvanceToNextEdge();
+		U64 frame_end = mLatch->GetSampleNumber();
 
 		// advance all lines up to the rising edge of the latch; the beginning of the frame
 		mClock->AdvanceToAbsPosition(frame_start);
 		mD0->AdvanceToAbsPosition(frame_start);
 		mD1->AdvanceToAbsPosition(frame_start);
 		
-		// process each clock in some sort of loop
+		// process each clock
+		while (mClock->GetSampleOfNextEdge() < frame_end)
+		{
+			// find next polling spot
+			mClock->AdvanceToNextEdge();
+			U64 clockEdge = mClock->GetSampleNumber();
 
-		//advance to next latch
-		if (mLatch->GetBitState() == BIT_HIGH)
-			mLatch->AdvanceToNextEdge();
+			// advance and read the data line(s)
+			mD0->AdvanceToAbsPosition(clockEdge);
+			BitState D0_bit = mD0->GetBitState();
+			mD1->AdvanceToAbsPosition(clockEdge);
+			BitState D1_bit = mD0->GetBitState();
 
-		mLatch->AdvanceToNextEdge();
+			if (D0_bit == BIT_HIGH)
+			{
+				mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::Zero, mSettings->mD0Channel);
+			}
+			else
+			{
+				mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::One, mSettings->mD0Channel);
+			}
+
+			if (D1_bit == BIT_HIGH)
+			{
+				mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::Zero, mSettings->mD1Channel);
+			}
+			else
+			{
+				mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::One, mSettings->mD1Channel);
+			}
+
+			mClock->AdvanceToNextEdge();
+		}
 
 		//we have a frame of data to save. 
 		Frame frame;
 		frame.mData1 = dbd;
 		frame.mFlags = 0;
 		frame.mStartingSampleInclusive = frame_start;
-		frame.mEndingSampleInclusive = mLatch->GetSampleNumber();
+		frame.mEndingSampleInclusive = frame_end;
 
 		mResults->AddFrame(frame);
 		mResults->CommitResults();
