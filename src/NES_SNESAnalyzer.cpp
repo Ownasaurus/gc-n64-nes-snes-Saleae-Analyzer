@@ -45,8 +45,10 @@ void NES_SNESAnalyzer::WorkerThread()
 	while(1)
 	{
 		// prepare data container
-		dbd = 0;
 		db.Reset(&dbd, MsbFirst, 32); // support up to 32 bit polling in case of overread
+		dbd = 0;
+
+		U8 bits_read = 0;
 
 		// frame the frame
 		U64 frame_start = mLatch->GetSampleNumber();
@@ -73,13 +75,19 @@ void NES_SNESAnalyzer::WorkerThread()
 			mD1->AdvanceToAbsPosition(clockEdge);
 			BitState D1_bit = mD0->GetBitState();
 
+
+			// mark the bit as 0 or 1 on the timeline
 			if (D0_bit == BIT_HIGH)
 			{
+				// invert logic
 				mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::Zero, mSettings->mD0Channel);
+				db.AddBit(BIT_LOW);
 			}
 			else
 			{
+				// invert logic
 				mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::One, mSettings->mD0Channel);
+				db.AddBit(BIT_HIGH);
 			}
 
 			if (D1_bit == BIT_HIGH)
@@ -92,11 +100,16 @@ void NES_SNESAnalyzer::WorkerThread()
 			}
 
 			mClock->AdvanceToNextEdge();
+
+			bits_read++;
 		}
+
+		frame_end = mClock->GetSampleNumber();
 
 		//we have a frame of data to save. 
 		Frame frame;
 		frame.mData1 = dbd;
+		frame.mData2 = bits_read;
 		frame.mFlags = 0;
 		frame.mStartingSampleInclusive = frame_start;
 		frame.mEndingSampleInclusive = frame_end;

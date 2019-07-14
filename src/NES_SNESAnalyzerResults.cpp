@@ -22,7 +22,59 @@ void NES_SNESAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 	Frame frame = GetFrame( frame_index );
 
 	char number_str[128];
-	AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
+	memset(&number_str, 0, 128);
+	if (display_base == ASCII)
+	{
+		BitExtractor be(frame.mData1, AnalyzerEnums::MsbFirst, 32);
+
+		for (int index = 0; index < frame.mData2; index++)
+		{
+			if (be.GetNextBit())
+			{
+				//TODO: translate to buttons. but need to know if NES or SNES to translate properly!
+				switch (index)
+				{
+					case 0:
+						number_str[index] = 'A';
+						break;
+					case 1:
+						number_str[index] = 'B';
+						break;
+					case 2:
+						number_str[index] = 's';
+						break;
+					case 3:
+						number_str[index] = 'S';
+						break;
+					case 4:
+						number_str[index] = 'U';
+						break;
+					case 5:
+						number_str[index] = 'D';
+						break;
+					case 6:
+						number_str[index] = 'L';
+						break;
+					case 7:
+						number_str[index] = 'R';
+						break;
+					// O for overrread
+					default:
+						number_str[index] = 'O';
+						break;
+				}
+			}
+			else
+			{
+				number_str[index] = '.';
+			}
+		}
+	}
+	else
+	{
+		AnalyzerHelpers::GetNumberString(frame.mData1, display_base, 8, number_str, 128);
+	}
+
 	AddResultString( number_str );
 }
 
