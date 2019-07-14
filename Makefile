@@ -29,6 +29,16 @@ main:
 	${GPP} ${GFLAGS} -I"./AnalyzerSDK/include" -O0 -w -c -fpic -g -o"debug/GCN64AnalyzerSettings.o" "src/GCN64AnalyzerSettings.cpp"
 	${GPP} ${GFLAGS} -L"./AnalyzerSDK/lib" ${LIB} -shared -o"release/libGCN64Analyzer.${FT}" release/GCN64SimulationDataGenerator.o release/GCN64AnalyzerResults.o release/GCN64Analyzer.o release/GCN64AnalyzerSettings.o
 	${GPP} ${GFLAGS} -L"./AnalyzerSDK/lib" ${LIB} -shared -o"debug/libGCN64Analyzer.${FT}" debug/GCN64SimulationDataGenerator.o debug/GCN64AnalyzerResults.o debug/GCN64Analyzer.o debug/GCN64AnalyzerSettings.o
+	${GPP} ${GFLAGS} -I"./AnalyzerSDK/include" -O3 -w -c -fpic -o"release/NES_SNESSimulationDataGenerator.o" "src/NES_SNESSimulationDataGenerator.cpp"
+	${GPP} ${GFLAGS} -I"./AnalyzerSDK/include" -O0 -w -c -fpic -g -o"debug/NES_SNESSimulationDataGenerator.o" "src/NES_SNESSimulationDataGenerator.cpp"
+	${GPP} ${GFLAGS} -I"./AnalyzerSDK/include" -O3 -w -c -fpic -o"release/NES_SNESAnalyzerResults.o" "src/NES_SNESAnalyzerResults.cpp"
+	${GPP} ${GFLAGS} -I"./AnalyzerSDK/include" -O0 -w -c -fpic -g -o"debug/NES_SNESAnalyzerResults.o" "src/NES_SNESAnalyzerResults.cpp"
+	${GPP} ${GFLAGS} -I"./AnalyzerSDK/include" -O3 -w -c -fpic -o"release/NES_SNESAnalyzer.o" "src/NES_SNESAnalyzer.cpp"
+	${GPP} ${GFLAGS} -I"./AnalyzerSDK/include" -O0 -w -c -fpic -g -o"debug/NES_SNESAnalyzer.o" "src/NES_SNESAnalyzer.cpp"
+	${GPP} ${GFLAGS} -I"./AnalyzerSDK/include" -O3 -w -c -fpic -o"release/NES_SNESAnalyzerSettings.o" "src/NES_SNESAnalyzerSettings.cpp"
+	${GPP} ${GFLAGS} -I"./AnalyzerSDK/include" -O0 -w -c -fpic -g -o"debug/NES_SNESAnalyzerSettings.o" "src/NES_SNESAnalyzerSettings.cpp"
+	${GPP} ${GFLAGS} -L"./AnalyzerSDK/lib" ${LIB} -shared -o"release/libNES_SNESAnalyzer.${FT}" release/NES_SNESSimulationDataGenerator.o release/NES_SNESAnalyzerResults.o release/NES_SNESAnalyzer.o release/NES_SNESAnalyzerSettings.o
+	${GPP} ${GFLAGS} -L"./AnalyzerSDK/lib" ${LIB} -shared -o"debug/libNES_SNESAnalyzer.${FT}" debug/NES_SNESSimulationDataGenerator.o debug/NES_SNESAnalyzerResults.o debug/NES_SNESAnalyzer.o debug/NES_SNESAnalyzerSettings.o
 
 .phony clean:
 	rm release/*
