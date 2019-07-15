@@ -6,7 +6,8 @@ NES_SNESAnalyzerSettings::NES_SNESAnalyzerSettings()
 :	mLatchChannel( UNDEFINED_CHANNEL ),
 	mClockChannel(UNDEFINED_CHANNEL),
 	mD0Channel(UNDEFINED_CHANNEL),
-	mD1Channel(UNDEFINED_CHANNEL)
+	mD1Channel(UNDEFINED_CHANNEL),
+	mConsole(CONSOLE_UNDEFINED)
 {
 	mLatchChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
 	mLatchChannelInterface->SetTitleAndTooltip( "Latch", "Standard NES and SNES Analyzer" );
@@ -25,11 +26,16 @@ NES_SNESAnalyzerSettings::NES_SNESAnalyzerSettings()
 	mD1ChannelInterface->SetSelectionOfNoneIsAllowed(true);
 	mD1ChannelInterface->SetChannel(mD1Channel);
 
+	mConsoleInterface.reset(new AnalyzerSettingInterfaceNumberList());
+	mConsoleInterface->SetTitleAndTooltip("Console", "Standard NES and SNES Analyzer");
+	mConsoleInterface->AddNumber(CONSOLE_NES, "NES", "NES");
+	mConsoleInterface->AddNumber(CONSOLE_SNES, "SNES", "SNES");
 
 	AddInterface( mLatchChannelInterface.get() );
 	AddInterface(mClockChannelInterface.get());
 	AddInterface(mD0ChannelInterface.get());
 	AddInterface(mD1ChannelInterface.get());
+	AddInterface(mConsoleInterface.get());
 
 	AddExportOption( 0, "Export as text/csv file" );
 	AddExportExtension( 0, "text", "txt" );
@@ -52,6 +58,7 @@ bool NES_SNESAnalyzerSettings::SetSettingsFromInterfaces()
 	mClockChannel = mClockChannelInterface->GetChannel();
 	mD0Channel = mD0ChannelInterface->GetChannel();
 	mD1Channel = mD1ChannelInterface->GetChannel();
+	mConsole = (ConsoleType)(unsigned int)mConsoleInterface->GetNumber();
 
 	ClearChannels();
 	AddChannel( mLatchChannel, "Latch", true );
@@ -68,6 +75,7 @@ void NES_SNESAnalyzerSettings::UpdateInterfacesFromSettings()
 	mClockChannelInterface->SetChannel(mClockChannel);
 	mD0ChannelInterface->SetChannel(mD0Channel);
 	mD1ChannelInterface->SetChannel(mD1Channel);
+	mConsoleInterface->SetNumber(mConsole);
 }
 
 void NES_SNESAnalyzerSettings::LoadSettings( const char* settings )
@@ -76,6 +84,9 @@ void NES_SNESAnalyzerSettings::LoadSettings( const char* settings )
 	text_archive.SetString( settings );
 
 	text_archive >> mLatchChannel;
+	text_archive >> mClockChannel;
+	text_archive >> mD0Channel;
+	text_archive >> mD1Channel;
 
 	ClearChannels();
 	AddChannel( mLatchChannel, "Latch", true );
@@ -91,6 +102,9 @@ const char* NES_SNESAnalyzerSettings::SaveSettings()
 	SimpleArchive text_archive;
 
 	text_archive << mLatchChannel;
+	text_archive << mClockChannel;
+	text_archive << mD0Channel;
+	text_archive << mD1Channel;
 
 	return SetReturnString( text_archive.GetString() );
 }

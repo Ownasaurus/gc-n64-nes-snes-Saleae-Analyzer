@@ -31,9 +31,12 @@ void NES_SNESAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 		{
 			if (be.GetNextBit())
 			{
-				//TODO: translate to buttons. but need to know if NES or SNES to translate properly!
-				switch (index)
+				ConsoleType consoleType = mSettings->mConsole;
+
+				if (consoleType == CONSOLE_NES)
 				{
+					switch (index)
+					{
 					case 0:
 						number_str[index] = 'A';
 						break;
@@ -58,10 +61,69 @@ void NES_SNESAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 					case 7:
 						number_str[index] = 'R';
 						break;
-					// O for overrread
+						// O for overrread
 					default:
 						number_str[index] = 'O';
 						break;
+					}
+				}
+				else if (consoleType == CONSOLE_SNES)
+				{
+					switch (index)
+					{
+						case 0:
+							number_str[index] = 'B';
+							break;
+						case 1:
+							number_str[index] = 'Y';
+							break;
+						case 2:
+							number_str[index] = 's';
+							break;
+						case 3:
+							number_str[index] = 'S';
+							break;
+						case 4:
+							number_str[index] = 'U';
+							break;
+						case 5:
+							number_str[index] = 'D';
+							break;
+						case 6:
+							number_str[index] = 'L';
+							break;
+						case 7:
+							number_str[index] = 'R';
+							break;
+						case 8:
+							number_str[index] = 'A';
+							break;
+						case 9:
+							number_str[index] = 'X';
+							break;
+						case 10:
+							number_str[index] = 'l';
+							break;
+						case 11:
+							number_str[index] = 'r';
+							break;
+						case 12:
+							number_str[index] = '1';
+							break;
+						case 13:
+							number_str[index] = '2';
+							break;
+						case 14:
+							number_str[index] = '3';
+							break;
+						case 15:
+							number_str[index] = '4';
+							break;
+						// Show the letter 'O' for overrread
+						default:
+							number_str[index] = 'O';
+							break;
+					}
 				}
 			}
 			else

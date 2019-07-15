@@ -73,7 +73,7 @@ void NES_SNESAnalyzer::WorkerThread()
 			mD0->AdvanceToAbsPosition(clockEdge);
 			BitState D0_bit = mD0->GetBitState();
 			mD1->AdvanceToAbsPosition(clockEdge);
-			BitState D1_bit = mD0->GetBitState();
+			BitState D1_bit = mD1->GetBitState();
 
 
 			// mark the bit as 0 or 1 on the timeline

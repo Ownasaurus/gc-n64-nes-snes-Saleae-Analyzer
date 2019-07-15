@@ -4,6 +4,13 @@
 #include <AnalyzerSettings.h>
 #include <AnalyzerTypes.h>
 
+enum ConsoleType
+{
+	CONSOLE_UNDEFINED=-1,
+	CONSOLE_NES=0,
+	CONSOLE_SNES=1
+};
+
 class NES_SNESAnalyzerSettings : public AnalyzerSettings
 {
 public:
@@ -20,12 +27,14 @@ public:
 	Channel mClockChannel;
 	Channel mD0Channel;
 	Channel mD1Channel;
+	ConsoleType mConsole;
 
 protected:
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mLatchChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mClockChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mD0ChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mD1ChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mConsoleInterface;
 };
 
 #endif //NES_SNES_ANALYZER_SETTINGS
