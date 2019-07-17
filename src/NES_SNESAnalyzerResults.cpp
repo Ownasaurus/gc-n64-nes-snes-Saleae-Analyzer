@@ -23,11 +23,14 @@ void NES_SNESAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 
 	char number_str[128];
 	memset(&number_str, 0, 128);
+	sprintf(number_str, "Frame #%lu: ", (unsigned long)frame.mData2);
+	size_t length = strlen(number_str);
+	
 	if (display_base == ASCII)
 	{
 		BitExtractor be(frame.mData1, AnalyzerEnums::MsbFirst, 32);
 
-		for (int index = 0; index < frame.mData2; index++)
+		for (int index = length; index < (32 + length) && index < 128; index++)
 		{
 			if (be.GetNextBit())
 			{
@@ -35,7 +38,7 @@ void NES_SNESAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 
 				if (consoleType == CONSOLE_NES)
 				{
-					switch (index)
+					switch (index-length)
 					{
 					case 0:
 						number_str[index] = 'A';
@@ -69,7 +72,7 @@ void NES_SNESAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 				}
 				else if (consoleType == CONSOLE_SNES)
 				{
-					switch (index)
+					switch (index-length)
 					{
 						case 0:
 							number_str[index] = 'B';

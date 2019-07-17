@@ -31,11 +31,23 @@ NES_SNESAnalyzerSettings::NES_SNESAnalyzerSettings()
 	mConsoleInterface->AddNumber(CONSOLE_NES, "NES", "NES");
 	mConsoleInterface->AddNumber(CONSOLE_SNES, "SNES", "SNES");
 
+	mLatchWindowInterface.reset(new AnalyzerSettingInterfaceInteger());
+	mLatchWindowInterface->SetTitleAndTooltip("Latch window (ms)", "Standard NES and SNES Analyzer");
+	mLatchWindowInterface->SetMin(0);
+	mLatchWindowInterface->SetMax(100);
+
+	mClockFilterInterface.reset(new AnalyzerSettingInterfaceInteger());
+	mClockFilterInterface->SetTitleAndTooltip("Latch window (us)", "Standard NES and SNES Analyzer");
+	mClockFilterInterface->SetMin(0);
+	mClockFilterInterface->SetMax(100);
+
 	AddInterface( mLatchChannelInterface.get() );
 	AddInterface(mClockChannelInterface.get());
 	AddInterface(mD0ChannelInterface.get());
 	AddInterface(mD1ChannelInterface.get());
 	AddInterface(mConsoleInterface.get());
+	AddInterface(mLatchWindowInterface.get());
+	AddInterface(mClockFilterInterface.get());
 
 	AddExportOption( 0, "Export as text/csv file" );
 	AddExportExtension( 0, "text", "txt" );
@@ -59,6 +71,8 @@ bool NES_SNESAnalyzerSettings::SetSettingsFromInterfaces()
 	mD0Channel = mD0ChannelInterface->GetChannel();
 	mD1Channel = mD1ChannelInterface->GetChannel();
 	mConsole = (ConsoleType)(unsigned int)mConsoleInterface->GetNumber();
+	mLatchWindow = mLatchWindowInterface->GetInteger();
+	mClockFilter = mClockFilterInterface->GetInteger();
 
 	ClearChannels();
 	AddChannel( mLatchChannel, "Latch", true );
@@ -76,6 +90,8 @@ void NES_SNESAnalyzerSettings::UpdateInterfacesFromSettings()
 	mD0ChannelInterface->SetChannel(mD0Channel);
 	mD1ChannelInterface->SetChannel(mD1Channel);
 	mConsoleInterface->SetNumber(mConsole);
+	mLatchWindowInterface->SetInteger(mLatchWindow);
+	mClockFilterInterface->SetInteger(mClockFilter);
 }
 
 void NES_SNESAnalyzerSettings::LoadSettings( const char* settings )

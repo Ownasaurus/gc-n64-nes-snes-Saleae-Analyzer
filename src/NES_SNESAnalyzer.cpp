@@ -26,6 +26,8 @@ void NES_SNESAnalyzer::SetupResults()
 
 void NES_SNESAnalyzer::WorkerThread()
 {
+	mSampleRateHz = GetSampleRate();
+
 	mLatch = GetAnalyzerChannelData( mSettings->mLatchChannel );
 	mClock = GetAnalyzerChannelData(mSettings->mClockChannel);
 	mD0 = GetAnalyzerChannelData(mSettings->mD0Channel);
@@ -33,7 +35,24 @@ void NES_SNESAnalyzer::WorkerThread()
 
 	U64 dbd = 0;
 	DataBuilder db;
+
+	U64 framecount = 1;
 	
+	// convert filter times to number of samples
+	int latchWindow = mSettings->mLatchWindow, clockFilter = mSettings->mClockFilter;
+	ClockGenerator cgLatchWindow, cgClockFilter;
+	U32 samplesInLatchWindow = 0, samplesInClockFilter = 0;
+	if (latchWindow > 0)
+	{
+		cgLatchWindow.Init(1000.0 / latchWindow, mSampleRateHz); // each period is latchWindow ms
+		samplesInLatchWindow = cgLatchWindow.AdvanceByHalfPeriod(2.0);
+	}
+	
+	if (clockFilter > 0)
+	{
+		cgClockFilter.Init(1000000.0 / clockFilter, mSampleRateHz); // each period is clockFilter us
+		samplesInClockFilter = cgClockFilter.AdvanceByHalfPeriod(2.0);
+	}
 
 	// make sure we are low
 	if( mLatch->GetBitState() == BIT_HIGH )
@@ -54,7 +73,17 @@ void NES_SNESAnalyzer::WorkerThread()
 		U64 frame_start = mLatch->GetSampleNumber();
 		if (mLatch->GetBitState() == BIT_HIGH)
 			mLatch->AdvanceToNextEdge();
-		mLatch->AdvanceToNextEdge();
+		// at this point we should be at the end of the small latch pulse
+
+		bool advanceFrameCount = true;
+
+		// NOTE: this is effectively a rolling window, which is different than how TAStm32 currently works
+		if (mLatch->WouldAdvancingCauseTransition(samplesInLatchWindow)) // this means we should prevent the frame count from increasing at the end of this frame
+		{
+			advanceFrameCount = false;
+		}
+
+		mLatch->AdvanceToNextEdge(); // move foward to the beginning of the next latch pulse
 		U64 frame_end = mLatch->GetSampleNumber();
 
 		// advance all lines up to the rising edge of the latch; the beginning of the frame
@@ -62,7 +91,7 @@ void NES_SNESAnalyzer::WorkerThread()
 		mD0->AdvanceToAbsPosition(frame_start);
 		mD1->AdvanceToAbsPosition(frame_start);
 		
-		// process each clock
+		// process each clock within the frame
 		while (mClock->GetSampleOfNextEdge() < frame_end)
 		{
 			// find next polling spot
@@ -101,6 +130,16 @@ void NES_SNESAnalyzer::WorkerThread()
 
 			mClock->AdvanceToNextEdge();
 
+			// check and see if there is an upcoming pulse that would be filtered out
+			// NOTE: this will currently only catch a maximum of one extra pulse per normal clock
+			if (mClock->WouldAdvancingCauseTransition(samplesInClockFilter))
+			{
+				// find and mark the filtered pulse
+				mClock->AdvanceToNextEdge();
+				mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::ErrorX, mSettings->mClockChannel);
+				mClock->AdvanceToNextEdge();
+			}
+
 			bits_read++;
 		}
 
@@ -109,7 +148,7 @@ void NES_SNESAnalyzer::WorkerThread()
 		//we have a frame of data to save. 
 		Frame frame;
 		frame.mData1 = dbd;
-		frame.mData2 = bits_read;
+		frame.mData2 = framecount;
 		frame.mFlags = 0;
 		frame.mStartingSampleInclusive = frame_start;
 		frame.mEndingSampleInclusive = frame_end;
@@ -117,6 +156,11 @@ void NES_SNESAnalyzer::WorkerThread()
 		mResults->AddFrame(frame);
 		mResults->CommitResults();
 		ReportProgress(frame.mEndingSampleInclusive);
+
+		if(advanceFrameCount)
+		{
+			framecount++;
+		}
 	}
 
 }

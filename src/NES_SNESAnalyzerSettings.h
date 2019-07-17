@@ -28,6 +28,8 @@ public:
 	Channel mD0Channel;
 	Channel mD1Channel;
 	ConsoleType mConsole;
+	int mLatchWindow;
+	int mClockFilter;
 
 protected:
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mLatchChannelInterface;
@@ -35,6 +37,8 @@ protected:
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mD0ChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mD1ChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mConsoleInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceInteger > mLatchWindowInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceInteger > mClockFilterInterface;
 };
 
 #endif //NES_SNES_ANALYZER_SETTINGS

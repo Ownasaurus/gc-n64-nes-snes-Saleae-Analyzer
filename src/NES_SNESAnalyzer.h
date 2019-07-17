@@ -34,6 +34,8 @@ protected: //vars
 	NES_SNESSimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;
 
+	U32 mSampleRateHz;
+
 #pragma warning( pop )
 };
 
