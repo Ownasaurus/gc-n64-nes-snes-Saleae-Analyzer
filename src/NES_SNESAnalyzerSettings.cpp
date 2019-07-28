@@ -51,7 +51,7 @@ NES_SNESAnalyzerSettings::NES_SNESAnalyzerSettings()
 
 	AddExportOption( 0, "Export as text/csv file" );
 	AddExportExtension( 0, "text", "txt" );
-	AddExportExtension( 0, "csv", "csv" );
+	AddExportExtension( 0, "r08", "r08" );
 
 	ClearChannels();
 	AddChannel( mLatchChannel, "Latch", false );

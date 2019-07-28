@@ -31,7 +31,14 @@ void NES_SNESAnalyzer::WorkerThread()
 	mLatch = GetAnalyzerChannelData( mSettings->mLatchChannel );
 	mClock = GetAnalyzerChannelData(mSettings->mClockChannel);
 	mD0 = GetAnalyzerChannelData(mSettings->mD0Channel);
-	mD1 = GetAnalyzerChannelData(mSettings->mD1Channel);
+	if (mSettings->mD1Channel != UNDEFINED_CHANNEL)
+	{
+		mD1 = GetAnalyzerChannelData(mSettings->mD1Channel);
+	}
+	else
+	{
+		mD1 = NULL;
+	}
 
 	U64 dbd = 0;
 	DataBuilder db;
@@ -89,7 +96,7 @@ void NES_SNESAnalyzer::WorkerThread()
 		// advance all lines up to the rising edge of the latch; the beginning of the frame
 		mClock->AdvanceToAbsPosition(frame_start);
 		mD0->AdvanceToAbsPosition(frame_start);
-		mD1->AdvanceToAbsPosition(frame_start);
+		if(mD1) mD1->AdvanceToAbsPosition(frame_start);
 		
 		// process each clock within the frame
 		while (mClock->GetSampleOfNextEdge() < frame_end)
@@ -101,8 +108,9 @@ void NES_SNESAnalyzer::WorkerThread()
 			// advance and read the data line(s)
 			mD0->AdvanceToAbsPosition(clockEdge);
 			BitState D0_bit = mD0->GetBitState();
-			mD1->AdvanceToAbsPosition(clockEdge);
-			BitState D1_bit = mD1->GetBitState();
+			if(mD1) mD1->AdvanceToAbsPosition(clockEdge);
+			BitState D1_bit;
+			if(mD1) D1_bit= mD1->GetBitState();
 
 
 			// mark the bit as 0 or 1 on the timeline
@@ -119,13 +127,16 @@ void NES_SNESAnalyzer::WorkerThread()
 				db.AddBit(BIT_HIGH);
 			}
 
-			if (D1_bit == BIT_HIGH)
+			if (mD1)
 			{
-				mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::Zero, mSettings->mD1Channel);
-			}
-			else
-			{
-				mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::One, mSettings->mD1Channel);
+				if (D1_bit == BIT_HIGH)
+				{
+					mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::Zero, mSettings->mD1Channel);
+				}
+				else
+				{
+					mResults->AddMarker(mClock->GetSampleNumber(), AnalyzerResults::One, mSettings->mD1Channel);
+				}
 			}
 
 			mClock->AdvanceToNextEdge();
