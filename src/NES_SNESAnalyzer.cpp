@@ -156,20 +156,20 @@ void NES_SNESAnalyzer::WorkerThread()
 
 		frame_end = mClock->GetSampleNumber();
 
-		//we have a frame of data to save. 
-		Frame frame;
-		frame.mData1 = dbd;
-		frame.mData2 = framecount;
-		frame.mFlags = 0;
-		frame.mStartingSampleInclusive = frame_start;
-		frame.mEndingSampleInclusive = frame_end;
-
-		mResults->AddFrame(frame);
-		mResults->CommitResults();
-		ReportProgress(frame.mEndingSampleInclusive);
-
 		if(advanceFrameCount)
 		{
+			//we have a frame of data to save. 
+			Frame frame;
+			frame.mData1 = dbd;
+			frame.mData2 = framecount;
+			frame.mFlags = 0;
+			frame.mStartingSampleInclusive = frame_start;
+			frame.mEndingSampleInclusive = frame_end;
+
+			mResults->AddFrame(frame);
+			mResults->CommitResults();
+			ReportProgress(frame.mEndingSampleInclusive);
+
 			framecount++;
 		}
 	}

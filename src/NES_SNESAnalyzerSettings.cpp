@@ -49,9 +49,8 @@ NES_SNESAnalyzerSettings::NES_SNESAnalyzerSettings()
 	AddInterface(mLatchWindowInterface.get());
 	AddInterface(mClockFilterInterface.get());
 
-	AddExportOption( 0, "Export as text/csv file" );
-	AddExportExtension( 0, "text", "txt" );
-	AddExportExtension( 0, "r08", "r08" );
+	AddExportOption( 0, "Export as an r16m file" );
+	AddExportExtension(0, "r16m", "r16m");
 
 	ClearChannels();
 	AddChannel( mLatchChannel, "Latch", false );

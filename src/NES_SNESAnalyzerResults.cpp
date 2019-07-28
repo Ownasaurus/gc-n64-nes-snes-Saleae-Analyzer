@@ -145,25 +145,29 @@ void NES_SNESAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& chan
 
 void NES_SNESAnalyzerResults::GenerateExportFile( const char* file, DisplayBase display_base, U32 export_type_user_id )
 {
-	std::ofstream file_stream( file, std::ios::out );
+	std::ofstream file_stream( file, std::ios::binary );
 
 	U64 trigger_sample = mAnalyzer->GetTriggerSample();
 	U32 sample_rate = mAnalyzer->GetSampleRate();
-
-	file_stream << "Time [s],Value" << std::endl;
 
 	U64 num_frames = GetNumFrames();
 	for( U32 i=0; i < num_frames; i++ )
 	{
 		Frame frame = GetFrame( i );
-		
-		char time_str[128];
-		AnalyzerHelpers::GetTimeString( frame.mStartingSampleInclusive, trigger_sample, sample_rate, time_str, 128 );
 
-		char number_str[128];
-		AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
+		// convert frame.data1 to a normal byte
+		U8 val = 0;
+		BitExtractor be(frame.mData1, AnalyzerEnums::MsbFirst, 32);
+		for (S8 x = 7; x >= 0; x--)
+		{
+			if (be.GetNextBit() == BIT_HIGH)
+			{
+				val += pow(2, x);
+			}
+		}
 
-		file_stream << time_str << "," << number_str << std::endl;
+		file_stream.put(val);
+		file_stream.write("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 15);
 
 		if( UpdateExportProgressAndCheckForCancel( i, num_frames ) == true )
 		{
